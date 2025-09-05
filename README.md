@@ -64,6 +64,10 @@ npm run dev
    - `GET /session/status` - Status da conexão
    - `POST /session/close` - Encerrar sessão
    - `POST /send-message` - Enviar mensagem
+   - `POST /send-media` - Enviar mídia
+   - `GET /health` - Status do servidor
+
+4. **Verificar configuração**: Acesse `/health` no seu app para diagnosticar problemas
 
 ## 🌐 Deploy
 
