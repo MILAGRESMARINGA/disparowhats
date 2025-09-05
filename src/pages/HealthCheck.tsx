@@ -4,21 +4,22 @@ import { supabase } from '../lib/supabase';
 import { 
   CheckCircle, 
   AlertCircle, 
-  RefreshCw, 
-  Server, 
-  Database,
-  Globe,
+  Activity,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
   Settings,
-  Copy,
-  ExternalLink,
+  Send,
+  Globe,
+  Server,
   Smartphone,
   Zap,
-  ExternalLink,
   Copy,
   Save,
   TestTube,
   Info
 } from 'lucide-react';
+import { ExternalLink as ExternalLinkIcon } from 'lucide-react';
 
 interface HealthCheck {
   endpoint: string;
