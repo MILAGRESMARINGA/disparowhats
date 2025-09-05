@@ -242,7 +242,7 @@ const HealthCheck: React.FC = () => {
                       rel="noopener noreferrer"
                       className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                     >
-                      <ExternalLink className="h-4 w-4" />
+                      <ExternalLinkIcon className="h-4 w-4" />
                     </a>
                   </div>
                 )}
