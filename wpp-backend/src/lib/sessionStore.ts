@@ -15,7 +15,6 @@ class RedisSessionStore implements SessionStore {
 
   constructor(redisUrl: string) {
     this.redis = new Redis(redisUrl, {
-      retryDelayOnFailover: 100,
       enableReadyCheck: false,
       maxRetriesPerRequest: null,
     });
