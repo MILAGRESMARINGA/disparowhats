@@ -1,20 +1,28 @@
 {
-  "name": "wpp-backend",
+  "name": "wppconnect-backend",
   "version": "1.0.0",
-  "private": true,
-  "main": "server.js",
-  "license": "MIT",
+  "description": "Backend WPPConnect para CRM WhatsApp com suporte a Redis",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "node server.js",
-    "start": "node server.js"
+    "build": "tsc",
+    "start": "npm run build && node dist/server.js",
+    "dev": "ts-node src/server.ts"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
-    "@wppconnect-team/wppconnect": "^1.0.0",
+    "@wppconnect-team/wppconnect": "^1.27.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "ioredis": "^5.3.2",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   }
 }
