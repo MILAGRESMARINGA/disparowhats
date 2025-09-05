@@ -1,87 +1,131 @@
-import { useState, useEffect } from 'react';
-import { WhatsAppService, SessionStatus } from '../services/whatsapp';
+// src/hooks/useWhatsAppConnection.ts
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { WhatsAppService } from '../services/whatsapp';
 
-export const useWhatsAppConnection = () => {
-  const [status, setStatus] = useState<SessionStatus>({
-    status: 'DISCONNECTED'
-  });
+export function useWhatsAppConnection() {
+  const [status, setStatus] = useState<'desconectado'|'aguardando'|'conectado'|'erro'|'demo'>('desconectado');
+  const [qrcode, setQrcode] = useState<string | null>(null);
+  const [message, setMessage] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const timer = useRef<number | null>(null);
 
-  const checkStatus = async () => {
+  const clearTimer = () => { 
+    if (timer.current) { 
+      window.clearInterval(timer.current); 
+      timer.current = null; 
+    } 
+  };
+
+  const checkStatus = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
-      const statusData = await WhatsAppService.getSessionStatus();
-      setStatus(statusData);
-    } catch (err) {
-      // Handle timeout and network errors gracefully
-      if (err instanceof Error && (err.message.includes('timeout') || err.message.includes('Network Error') || err.code === 'ECONNREFUSED')) {
-        setStatus({ status: 'DISCONNECTED' });
-        console.warn('WhatsApp backend não disponível - usando status desconectado');
-      } else {
-        setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      const res: any = await WhatsAppService.getSessionStatus();
+      
+      if (res?.demo) {
+        setStatus('demo'); 
+        setMessage(res?.note || 'DEMO'); 
+        setQrcode(null);
+        return;
       }
+      
+      if (res?.connected || res?.status === 'CONNECTED') {
+        setStatus('conectado'); 
+        setMessage('Conectado ✅'); 
+        setQrcode(null);
+      } else {
+        setStatus('desconectado'); 
+        setMessage('Desconectado'); 
+        setQrcode(null);
+      }
+    } catch (error) {
+      setStatus('erro');
+      setMessage(error instanceof Error ? error.message : 'Erro desconhecido');
+      setQrcode(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const startSession = async () => {
+  const start = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
-      const sessionData = await WhatsAppService.startSession();
-      setStatus(sessionData);
+      setStatus('aguardando'); 
+      setMessage('Gerando QR Code...');
       
-      // Se recebeu QR code, verificar status periodicamente
-      if (sessionData.qrcode) {
-        const interval = setInterval(async () => {
+      const res: any = await WhatsAppService.startSession();
+      
+      if (res?.demo) {
+        setStatus('demo'); 
+        setQrcode(res.qrcode); 
+        setMessage(res.note || 'DEMO');
+        return;
+      }
+      
+      if (res?.qrcode) {
+        const qrData = res.qrcode.startsWith('data:') ? res.qrcode : `data:image/png;base64,${res.qrcode}`;
+        setQrcode(qrData);
+        setStatus('aguardando'); 
+        setMessage('Escaneie o QR com o WhatsApp.');
+        
+        // Start polling for connection
+        clearTimer();
+        timer.current = window.setInterval(async () => {
           try {
-            const currentStatus = await WhatsAppService.getSessionStatus();
-            setStatus(currentStatus);
-            
-            if (currentStatus.status === 'CONNECTED') {
-              clearInterval(interval);
+            const statusRes: any = await WhatsAppService.getSessionStatus();
+            if (statusRes?.connected || statusRes?.status === 'CONNECTED') {
+              setStatus('conectado');
+              setMessage('Conectado ✅');
+              setQrcode(null);
+              clearTimer();
             }
           } catch (error) {
             console.error('Erro ao verificar status:', error);
           }
         }, 3000);
-
-        // Limpar interval após 5 minutos
-        setTimeout(() => clearInterval(interval), 300000);
+        
+      } else if (res?.status === 'CONNECTED') {
+        setStatus('conectado'); 
+        setQrcode(null); 
+        setMessage('Conectado ✅');
+      } else {
+        setStatus('erro'); 
+        setMessage('Não foi possível gerar QR.');
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao iniciar sessão');
+    } catch (error) {
+      setStatus('erro');
+      setMessage(error instanceof Error ? error.message : 'Erro ao iniciar sessão');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const closeSession = async () => {
+  const stop = useCallback(async () => {
     try {
       setLoading(true);
-      setError(null);
       await WhatsAppService.closeSession();
-      setStatus({ status: 'DISCONNECTED' });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao encerrar sessão');
+      setStatus('desconectado'); 
+      setQrcode(null); 
+      setMessage('Sessão encerrada');
+      clearTimer();
+    } catch (error) {
+      setMessage('Erro ao encerrar sessão');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     checkStatus();
-  }, []);
+    return () => clearTimer();
+  }, [checkStatus]);
 
-  return {
-    status,
+  return { 
+    status, 
+    qrcode, 
+    message, 
     loading,
-    error,
-    startSession,
-    closeSession,
-    checkStatus,
+    start, 
+    stop, 
+    refresh: checkStatus 
   };
-};
+}

@@ -9,9 +9,10 @@ export default function EnvBanner() {
   if (!missing.length) return null
 
   return (
-    <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-200 px-4 py-2 text-sm">
+    <div className="w-full bg-amber-500/10 border-b border-amber-500/20 text-amber-200 px-4 py-2 text-sm backdrop-blur-sm">
       ⚠️ Variáveis de ambiente ausentes: <b>{missing.join(', ')}</b>.  
-      Configure no Bolt Hosting → Environment e reimplante.
+      Configure no Bolt Hosting → Environment e reimplante. 
+      <a href="/health" className="underline hover:text-amber-100 ml-2">Ver diagnóstico →</a>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { apiUrl } from '../config/api';
+import { apiUrl, apiBaseUrl } from '../config/api';
 import { supabase } from '../lib/supabase';
 import { 
   CheckCircle, 
@@ -10,7 +10,8 @@ import {
   Globe,
   Settings,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Smartphone
 } from 'lucide-react';
 
 export default function HealthCheck() {
@@ -301,103 +302,75 @@ export default function HealthCheck() {
           </div>
         )}
 
-        {/* Quick Test Commands */}
-        <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50">
-          <h2 className="text-xl font-bold text-white mb-4">🧪 Testes Rápidos</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-slate-700/30 rounded-xl p-4">
-              <h3 className="text-white font-medium mb-2">Teste da API:</h3>
-              <code className="text-xs text-green-400 bg-slate-900/50 p-2 rounded block">
-                curl {apiBase || 'http://localhost:3333'}/health
-              </code>
-              <button
-                onClick={() => copyToClipboard(`curl ${apiBase || 'http://localhost:3333'}/health`)}
-                className="text-blue-400 hover:text-blue-300 text-xs mt-2 flex items-center space-x-1"
-              >
-                <Copy className="h-3 w-3" />
-                <span>Copiar comando</span>
-              </button>
-            </div>
-
-            <div className="bg-slate-700/30 rounded-xl p-4">
-              <h3 className="text-white font-medium mb-2">Teste do Supabase:</h3>
-              <p className="text-slate-300 text-sm">
-                Acesse o painel do Supabase e verifique se o projeto está ativo.
-              </p>
-              {supaUrl && (
-                <a
-                  href={supaUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-400 hover:text-blue-300 text-xs mt-2 flex items-center space-x-1"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  <span>Abrir Supabase</span>
-                </a>
-              )}
-            </div>
+        {/* Quick Actions */}
+        <div className="text-center space-y-4">
+          <div className="flex justify-center space-x-4">
+            <a
+              href="/whatsapp"
+              className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:from-green-600 hover:to-emerald-600 transition-all"
+            >
+              <Smartphone className="h-5 w-5" />
+              <span>Ir para WhatsApp</span>
+            </a>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center space-x-2 bg-slate-700 text-white px-6 py-3 rounded-xl font-medium hover:bg-slate-600 transition-all"
+            >
+              <RefreshCw className="h-5 w-5" />
+              <span>Recarregar Testes</span>
+            </button>
           </div>
         </div>
 
-        {/* System Status Summary */}
-        <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50">
-          <h2 className="text-xl font-bold text-white mb-4">📊 Resumo do Sistema</h2>
+        {/* Backend Setup Guide */}
+        <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl p-6">
+          <h2 className="text-xl font-bold text-white mb-4">🚀 Setup do Backend (Sem instalação no PC)</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className={`p-4 rounded-xl border ${getStatusColor(apiOk)}`}>
-              <div className="flex items-center space-x-3">
-                {getStatusIcon(apiOk)}
-                <div>
-                  <p className="text-white font-medium">Backend WhatsApp</p>
-                  <p className="text-sm text-slate-300">{apiMsg}</p>
-                </div>
+            <div>
+              <h3 className="text-white font-medium mb-3">1. Hospedar Backend:</h3>
+              <div className="space-y-2">
+                <a
+                  href="https://render.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span>Render.com (Recomendado)</span>
+                </a>
+                <a
+                  href="https://railway.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span>Railway.app</span>
+                </a>
               </div>
             </div>
-
-            <div className={`p-4 rounded-xl border ${getStatusColor(supabaseOk)}`}>
-              <div className="flex items-center space-x-3">
-                {getStatusIcon(supabaseOk)}
-                <div>
-                  <p className="text-white font-medium">Banco de Dados</p>
-                  <p className="text-sm text-slate-300">{supabaseMsg}</p>
+            
+            <div>
+              <h3 className="text-white font-medium mb-3">2. Endpoints Necessários:</h3>
+              <div className="space-y-1 text-sm text-slate-300">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <code>GET /health</code>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <code>GET /session/start</code>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <code>GET /session/status</code>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <code>POST /session/close</code>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Troubleshooting */}
-        <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50">
-          <h2 className="text-xl font-bold text-white mb-4">🔧 Solução de Problemas</h2>
-          
-          <div className="space-y-4">
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-              <h3 className="text-red-400 font-medium mb-2">❌ API não responde</h3>
-              <ul className="text-red-300 text-sm space-y-1 list-disc list-inside">
-                <li>Verifique se o backend está rodando</li>
-                <li>Confirme a URL em VITE_API_BASE</li>
-                <li>Verifique configuração de CORS no backend</li>
-                <li>Para HTTPS frontend + HTTP backend, use ngrok ou backend HTTPS</li>
-              </ul>
-            </div>
-
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-              <h3 className="text-yellow-400 font-medium mb-2">⚠️ Supabase com erro</h3>
-              <ul className="text-yellow-300 text-sm space-y-1 list-disc list-inside">
-                <li>Verifique se o projeto Supabase está ativo</li>
-                <li>Confirme URL e chave anon no painel do Supabase</li>
-                <li>Verifique se as tabelas foram criadas (migrations)</li>
-                <li>Teste a conexão diretamente no painel do Supabase</li>
-              </ul>
-            </div>
-
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-              <h3 className="text-blue-400 font-medium mb-2">ℹ️ Modo Demo</h3>
-              <p className="text-blue-300 text-sm">
-                Mesmo sem as variáveis configuradas, o sistema funciona em modo demo com dados simulados. 
-                Configure as variáveis para funcionalidade completa com persistência de dados.
-              </p>
             </div>
           </div>
         </div>

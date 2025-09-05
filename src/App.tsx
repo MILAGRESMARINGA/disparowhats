@@ -69,6 +69,7 @@ function App() {
             <Route path="/recuperar-senha" element={<ForgotPassword />} />
             <Route path="/status" element={<StatusPage />} />
             <Route path="/health" element={<HealthCheck />} />
+            <Route path="/whatsapp" element={<WhatsApp />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </>
         )}
