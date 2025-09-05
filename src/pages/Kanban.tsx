@@ -53,56 +53,56 @@ const Kanban: React.FC = () => {
     { 
       status: 'new',
       title: '🟡 Novo Lead',
-      color: 'border-blue-500 bg-blue-50', 
+      color: 'border-blue-500 bg-blue-500/10', 
       icon: Users,
       description: 'Leads recém-importados do WhatsApp'
     },
     { 
       status: 'contacted',
       title: '🟠 Em Atendimento',
-      color: 'border-yellow-500 bg-yellow-50', 
+      color: 'border-yellow-500 bg-yellow-500/10', 
       icon: Phone,
       description: 'Primeiro contato realizado'
     },
     { 
       status: 'follow-up',
       title: '🔁 Follow-up',
-      color: 'border-orange-500 bg-orange-50', 
+      color: 'border-orange-500 bg-orange-500/10', 
       icon: Clock,
       description: 'Aguardando retorno'
     },
     { 
       status: 'waiting',
       title: '⏳ Aguardando Retorno',
-      color: 'border-gray-500 bg-gray-50',
+      color: 'border-gray-500 bg-gray-500/10',
       icon: Clock,
       description: 'Sem resposta há mais de 24h'
     },
     { 
       status: 'scheduled',
       title: '📅 Agendamento',
-      color: 'border-purple-500 bg-purple-50', 
+      color: 'border-purple-500 bg-purple-500/10', 
       icon: Calendar,
       description: 'Visita agendada'
     },
     { 
       status: 'visit',
       title: '🚗 Visita',
-      color: 'border-teal-500 bg-teal-50',
+      color: 'border-teal-500 bg-teal-500/10',
       icon: MapPin,
       description: 'Visita confirmada ou realizada'
     },
     { 
       status: 'negotiating',
       title: '📄 Proposta',
-      color: 'border-indigo-500 bg-indigo-50', 
+      color: 'border-indigo-500 bg-indigo-500/10', 
       icon: DollarSign,
       description: 'Negociação em andamento'
     },
     { 
       status: 'closed',
       title: '✅ Fechamento',
-      color: 'border-green-500 bg-green-50', 
+      color: 'border-green-500 bg-green-500/10', 
       icon: CheckCircle,
       description: 'Negócio concluído'
     }
