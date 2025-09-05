@@ -1,12 +1,20 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import env from '../config/env'
 
-if (!env.SUPABASE_URL) throw new Error('Supabase: VITE_SUPABASE_URL ausente.')
-if (!env.SUPABASE_ANON_KEY) throw new Error('Supabase: VITE_SUPABASE_ANON_KEY ausente.')
+// Create a fallback client if environment variables are missing
+const supabaseUrl = env.SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseKey = env.SUPABASE_ANON_KEY || 'placeholder-key'
+
+if (!env.SUPABASE_URL) {
+  console.warn('⚠️ VITE_SUPABASE_URL não configurada. Usando modo demo.')
+}
+if (!env.SUPABASE_ANON_KEY) {
+  console.warn('⚠️ VITE_SUPABASE_ANON_KEY não configurada. Usando modo demo.')
+}
 
 export const supabase: SupabaseClient = createClient(
-  env.SUPABASE_URL!,
-  env.SUPABASE_ANON_KEY!,
+  supabaseUrl,
+  supabaseKey,
   {
     auth: {
       persistSession: true,
