@@ -17,6 +17,7 @@ import Messages from './pages/Messages';
 import EnvStatus from './pages/EnvStatus';
 import Diagnostics from './pages/Diagnostics';
 import HealthCheck from './pages/HealthCheck';
+import WhatsAppPage from './pages/WhatsApp';
 
 function App() {
   const { user, loading } = useAuth();
@@ -44,7 +45,7 @@ function App() {
             {console.log('🏠 Renderizando rotas autenticadas para:', user.name)}
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/whatsapp" element={<WhatsApp />} />
+            <Route path="/whatsapp" element={<WhatsAppPage />} />
             <Route path="/send-mass" element={<SendMass />} />
             <Route path="/mass-send" element={<SendMass />} />
             <Route path="/contacts" element={<Contacts />} />
@@ -69,7 +70,7 @@ function App() {
             <Route path="/recuperar-senha" element={<ForgotPassword />} />
             <Route path="/status" element={<StatusPage />} />
             <Route path="/health" element={<HealthCheck />} />
-            <Route path="/whatsapp" element={<WhatsApp />} />
+            <Route path="/whatsapp" element={<WhatsAppPage />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </>
         )}

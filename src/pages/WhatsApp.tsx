@@ -17,7 +17,7 @@ import {
   Info
 } from 'lucide-react';
 
-const WhatsApp: React.FC = () => {
+const WhatsAppPage: React.FC = () => {
   const { status, qrcode, message, loading, start, stop, refresh } = useWhatsAppConnection();
 
   const getStatusIcon = () => {
@@ -205,6 +205,23 @@ const WhatsApp: React.FC = () => {
           </div>
         </div>
 
+        {/* Compliance Notice */}
+        <div className="mb-8 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-6">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="h-6 w-6 text-yellow-400 flex-shrink-0 mt-1" />
+            <div>
+              <h3 className="text-yellow-400 font-bold mb-2">⚖️ Regras de Conformidade WhatsApp</h3>
+              <ul className="text-yellow-300 text-sm space-y-1 list-disc list-inside">
+                <li><strong>Conexão via QR:</strong> Sempre escaneado pelo usuário em seu próprio aparelho</li>
+                <li><strong>Uma sessão por vez:</strong> Conectar em outro local encerra a anterior</li>
+                <li><strong>Consentimento:</strong> Só envie mensagens a quem consentiu (evite ban)</li>
+                <li><strong>Limites:</strong> Respeite limites de envio e pausas automáticas</li>
+                <li><strong>Uso legítimo:</strong> Use apenas seus próprios contatos/conversas</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           {status === 'desconectado' || status === 'demo' ? (
@@ -359,3 +376,5 @@ const WhatsApp: React.FC = () => {
     </Layout>
   );
 };
+
+export default WhatsAppPage;

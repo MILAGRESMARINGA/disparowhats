@@ -11,84 +11,171 @@ import {
   Settings,
   Copy,
   ExternalLink,
-  Smartphone
+  Smartphone,
+  Zap,
+  ExternalLink,
+  Copy,
+  Save,
+  TestTube
 } from 'lucide-react';
 
-export default function HealthCheck() {
-  const [apiOk, setApiOk] = useState<'pending'|'ok'|'fail'>('pending');
-  const [apiMsg, setApiMsg] = useState('');
-  const [supabaseOk, setSupabaseOk] = useState<'pending'|'ok'|'fail'>('pending');
-  const [supabaseMsg, setSupabaseMsg] = useState('');
-  
-  const supaUrl = import.meta.env.VITE_SUPABASE_URL;
-  const apiBase = import.meta.env.VITE_API_BASE;
-  const supaKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+interface HealthCheck {
+  endpoint: string;
+  status: 'checking' | 'success' | 'error';
+  response?: any;
+  error?: string;
+  duration?: number;
+}
+
+const HealthCheck: React.FC = () => {
+  const [apiUrl, setApiUrl] = useState(
+    localStorage.getItem('custom_api_url') || 
+    import.meta.env.VITE_API_BASE || 
+    'https://seu-backend.onrender.com'
+  );
+  const [tempApiUrl, setTempApiUrl] = useState(apiUrl);
+  const [healthChecks, setHealthChecks] = useState<HealthCheck[]>([]);
+  const [testing, setTesting] = useState(false);
+  const [testPhone, setTestPhone] = useState('5511999887766');
+  const [testMessage, setTestMessage] = useState('🤖 Teste do CRM WhatsApp Pro - ' + new Date().toLocaleTimeString());
+
+  const endpoints = [
+    { path: '/health', name: 'Health Check', description: 'Verifica se o servidor está online' },
+    { path: '/session/status', name: 'WhatsApp Status', description: 'Status da conexão WhatsApp' },
+    { path: '/session/start', name: 'Session Start', description: 'Iniciar sessão WhatsApp' }
+  ];
 
   useEffect(() => {
-    const pingAPI = async () => {
-      try {
-        const res = await fetch(apiUrl('/health'), { 
-          method: 'GET',
-          signal: AbortSignal.timeout(10000) // 10 second timeout
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setApiOk('ok');
-          setApiMsg(`API está respondendo 👍 - ${JSON.stringify(data)}`);
-        } else {
-          setApiOk('fail');
-          setApiMsg(`API respondeu com status ${res.status}`);
-        }
-      } catch (e: any) {
-        setApiOk('fail');
-        if (e.name === 'TimeoutError') {
-          setApiMsg('Timeout - API não respondeu em 10s');
-        } else if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
-          setApiMsg('Erro de rede - verifique CORS e URL da API');
-        } else {
-          setApiMsg(`Erro de rede: ${e?.message || e}`);
-        }
-      }
-    };
+    if (apiUrl !== import.meta.env.VITE_API_BASE) {
+      localStorage.setItem('custom_api_url', apiUrl);
+    }
+  }, [apiUrl]);
 
-    const pingSupabase = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          setSupabaseOk('fail');
-          setSupabaseMsg(`Erro Supabase: ${error.message}`);
-        } else {
-          setSupabaseOk('ok');
-          setSupabaseMsg('Supabase conectado 👍');
-        }
-      } catch (e: any) {
-        setSupabaseOk('fail');
-        setSupabaseMsg(`Erro de conexão: ${e?.message || e}`);
-      }
-    };
+  const runHealthCheck = async (endpoint: string): Promise<HealthCheck> => {
+    const startTime = Date.now();
+    const fullUrl = `${apiUrl}${endpoint}`;
+    
+    try {
+      const response = await fetch(fullUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
 
-    pingAPI();
-    pingSupabase();
-  }, []);
+      const duration = Date.now() - startTime;
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      return {
+        endpoint,
+        status: 'success',
+        response: data,
+        duration
+      };
+    } catch (error: any) {
+      const duration = Date.now() - startTime;
+      
+      let errorMessage = 'Erro desconhecido';
+      if (error.name === 'TimeoutError') {
+        errorMessage = 'Timeout - servidor não respondeu em 10s';
+      } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        errorMessage = 'Erro de rede - verifique a URL e CORS';
+      } else if (error.message.includes('ERR_NETWORK')) {
+        errorMessage = 'Erro de conexão - backend pode estar offline';
+      } else {
+        errorMessage = error.message;
+      }
+
+      return {
+        endpoint,
+        status: 'error',
+        error: errorMessage,
+        duration
+      };
+    }
+  };
+
+  const runAllChecks = async () => {
+    setTesting(true);
+    const checks: HealthCheck[] = [];
+    
+    for (const endpoint of endpoints) {
+      const check = { ...endpoint, endpoint: endpoint.path, status: 'checking' as const };
+      checks.push(check);
+      setHealthChecks([...checks]);
+      
+      const result = await runHealthCheck(endpoint.path);
+      const index = checks.findIndex(c => c.endpoint === endpoint.path);
+      checks[index] = result;
+      setHealthChecks([...checks]);
+    }
+    
+    setTesting(false);
+  };
+
+  const testSendMessage = async () => {
+    if (!testPhone || !testMessage) {
+      alert('Preencha telefone e mensagem para teste');
+      return;
+    }
+
+    setTesting(true);
+    
+    try {
+      const response = await fetch(`${apiUrl}/send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: testPhone,
+          message: testMessage
+        })
+      });
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        alert('✅ Mensagem enviada com sucesso!\n\n' + JSON.stringify(result, null, 2));
+      } else {
+        alert('❌ Erro no envio:\n\n' + JSON.stringify(result, null, 2));
+      }
+    } catch (error: any) {
+      alert('❌ Erro de conexão:\n\n' + error.message);
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const saveApiUrl = () => {
+    setApiUrl(tempApiUrl);
+    alert('✅ URL da API salva! Execute os testes novamente.');
+  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     alert('📋 Copiado para a área de transferência!');
   };
 
-  const getStatusIcon = (status: 'pending'|'ok'|'fail') => {
+  const getStatusIcon = (status: HealthCheck['status']) => {
     switch (status) {
-      case 'pending': return <RefreshCw className="h-5 w-5 text-blue-400 animate-spin" />;
-      case 'ok': return <CheckCircle className="h-5 w-5 text-green-400" />;
-      case 'fail': return <AlertCircle className="h-5 w-5 text-red-400" />;
+      case 'checking': return <RefreshCw className="h-4 w-4 text-blue-400 animate-spin" />;
+      case 'success': return <CheckCircle className="h-4 w-4 text-green-400" />;
+      case 'error': return <AlertCircle className="h-4 w-4 text-red-400" />;
     }
   };
 
-  const getStatusColor = (status: 'pending'|'ok'|'fail') => {
+  const getStatusColor = (status: HealthCheck['status']) => {
     switch (status) {
-      case 'pending': return 'bg-blue-500/10 border-blue-500/20';
-      case 'ok': return 'bg-green-500/10 border-green-500/20';
-      case 'fail': return 'bg-red-500/10 border-red-500/20';
+      case 'checking': return 'bg-blue-500/10 border-blue-500/20';
+      case 'success': return 'bg-green-500/10 border-green-500/20';
+      case 'error': return 'bg-red-500/10 border-red-500/20';
     }
   };
 
@@ -112,17 +199,17 @@ export default function HealthCheck() {
           </div>
           
           <div className="space-y-3">
-            <div className={`p-4 rounded-xl border ${apiBase ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`p-4 rounded-xl border ${import.meta.env.VITE_API_BASE ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white font-medium">VITE_API_BASE</p>
-                  <p className={`text-sm ${apiBase ? 'text-green-400' : 'text-red-400'}`}>
-                    {apiBase || 'não definida'}
+                  <p className={`text-sm ${import.meta.env.VITE_API_BASE ? 'text-green-400' : 'text-red-400'}`}>
+                    {import.meta.env.VITE_API_BASE || 'não definida'}
                   </p>
                 </div>
-                {apiBase && (
+                {import.meta.env.VITE_API_BASE && (
                   <button
-                    onClick={() => copyToClipboard(apiBase)}
+                    onClick={() => copyToClipboard(import.meta.env.VITE_API_BASE)}
                     className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                   >
                     <Copy className="h-4 w-4" />
@@ -131,24 +218,24 @@ export default function HealthCheck() {
               </div>
             </div>
 
-            <div className={`p-4 rounded-xl border ${supaUrl ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`p-4 rounded-xl border ${import.meta.env.VITE_SUPABASE_URL ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white font-medium">VITE_SUPABASE_URL</p>
-                  <p className={`text-sm ${supaUrl ? 'text-green-400' : 'text-red-400'}`}>
-                    {supaUrl || 'não definida'}
+                  <p className={`text-sm ${import.meta.env.VITE_SUPABASE_URL ? 'text-green-400' : 'text-red-400'}`}>
+                    {import.meta.env.VITE_SUPABASE_URL || 'não definida'}
                   </p>
                 </div>
-                {supaUrl && (
+                {import.meta.env.VITE_SUPABASE_URL && (
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => copyToClipboard(supaUrl)}
+                      onClick={() => copyToClipboard(import.meta.env.VITE_SUPABASE_URL)}
                       className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                     >
                       <Copy className="h-4 w-4" />
                     </button>
                     <a
-                      href={supaUrl}
+                      href={import.meta.env.VITE_SUPABASE_URL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
@@ -160,12 +247,12 @@ export default function HealthCheck() {
               </div>
             </div>
 
-            <div className={`p-4 rounded-xl border ${supaKey ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+            <div className={`p-4 rounded-xl border ${import.meta.env.VITE_SUPABASE_ANON_KEY ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white font-medium">VITE_SUPABASE_ANON_KEY</p>
-                  <p className={`text-sm ${supaKey ? 'text-green-400' : 'text-red-400'}`}>
-                    {supaKey ? '*** definido ***' : 'não definida'}
+                  <p className={`text-sm ${import.meta.env.VITE_SUPABASE_ANON_KEY ? 'text-green-400' : 'text-red-400'}`}>
+                    {import.meta.env.VITE_SUPABASE_ANON_KEY ? '*** definido ***' : 'não definida'}
                   </p>
                 </div>
               </div>
@@ -173,208 +260,19 @@ export default function HealthCheck() {
           </div>
         </div>
 
-        {/* API Status */}
-        <div className={`bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50`}>
-          <div className="flex items-center space-x-3 mb-4">
-            <Server className="h-6 w-6 text-purple-400" />
-            <h2 className="text-xl font-bold text-white">Status da API</h2>
-          </div>
-          
-          <div className={`p-4 rounded-xl border ${getStatusColor(apiOk)}`}>
-            <div className="flex items-center space-x-3">
-              {getStatusIcon(apiOk)}
-              <div className="flex-1">
-                <p className="text-white font-medium">
-                  Backend WhatsApp: {apiOk === 'pending' ? 'Testando...' : apiOk === 'ok' ? 'Online' : 'Offline'}
-                </p>
-                <p className="text-sm text-slate-300">{apiMsg}</p>
-                <p className="text-xs text-slate-500 mt-1">
-                  URL: {apiBase || 'não configurada'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Supabase Status */}
-        <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50">
-          <div className="flex items-center space-x-3 mb-4">
-            <Database className="h-6 w-6 text-green-400" />
-            <h2 className="text-xl font-bold text-white">Status do Supabase</h2>
-          </div>
-          
-          <div className={`p-4 rounded-xl border ${getStatusColor(supabaseOk)}`}>
-            <div className="flex items-center space-x-3">
-              {getStatusIcon(supabaseOk)}
-              <div className="flex-1">
-                <p className="text-white font-medium">
-                  Banco de Dados: {supabaseOk === 'pending' ? 'Testando...' : supabaseOk === 'ok' ? 'Conectado' : 'Erro'}
-                </p>
-                <p className="text-sm text-slate-300">{supabaseMsg}</p>
-                <p className="text-xs text-slate-500 mt-1">
-                  URL: {supaUrl || 'não configurada'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Configuration Instructions */}
-        <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50">
-          <h2 className="text-xl font-bold text-white mb-4">📋 Como Configurar</h2>
-          
-          <div className="space-y-6">
-            {/* Development */}
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-3">🔧 Desenvolvimento Local</h3>
-              <div className="bg-slate-900/50 rounded-xl p-4">
-                <p className="text-slate-300 text-sm mb-3">
-                  1. Crie um arquivo <code className="bg-slate-700 px-2 py-1 rounded">.env</code> na raiz do projeto
-                </p>
-                <div className="bg-slate-700/50 rounded-lg p-3">
-                  <code className="text-green-400 text-sm">
-                    VITE_API_BASE=http://localhost:3333<br/>
-                    VITE_SUPABASE_URL=https://seu-projeto.supabase.co<br/>
-                    VITE_SUPABASE_ANON_KEY=sua-chave-anon
-                  </code>
-                  <button
-                    onClick={() => copyToClipboard(`VITE_API_BASE=http://localhost:3333\nVITE_SUPABASE_URL=https://seu-projeto.supabase.co\nVITE_SUPABASE_ANON_KEY=sua-chave-anon`)}
-                    className="ml-3 p-1 text-blue-400 hover:bg-blue-500/10 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Production */}
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-3">🚀 Produção (Bolt Hosting)</h3>
-              <div className="bg-slate-900/50 rounded-xl p-4">
-                <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
-                  <li>Vá em <strong>Settings → Environment Variables</strong> no Bolt Hosting</li>
-                  <li>Adicione as seguintes variáveis:</li>
-                </ol>
-                <div className="bg-slate-700/50 rounded-lg p-3 mt-3">
-                  <div className="space-y-1 text-sm">
-                    <div className="flex items-center justify-between">
-                      <code className="text-green-400">VITE_API_BASE</code>
-                      <span className="text-slate-400">=</span>
-                      <code className="text-blue-400">https://seu-backend.onrender.com</code>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <code className="text-green-400">VITE_SUPABASE_URL</code>
-                      <span className="text-slate-400">=</span>
-                      <code className="text-blue-400">https://seu-projeto.supabase.co</code>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <code className="text-green-400">VITE_SUPABASE_ANON_KEY</code>
-                      <span className="text-slate-400">=</span>
-                      <code className="text-blue-400">sua-chave-anon</code>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-slate-400 text-sm mt-3">
-                  3. Clique em <strong>Deploy</strong> para republicar com as novas variáveis
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Missing Variables Warning */}
-        {(!apiBase || !supaUrl || !supaKey) && (
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-6">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="h-6 w-6 text-yellow-400 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="text-yellow-400 font-bold mb-2">⚠️ Variáveis de Ambiente Ausentes</h3>
-                <p className="text-yellow-300 text-sm mb-4">
-                  O sistema está rodando em modo demo limitado. Configure as variáveis para funcionalidade completa:
-                </p>
-                <ul className="text-yellow-300 text-sm space-y-1 list-disc list-inside">
-                  {!apiBase && <li>VITE_API_BASE - URL do backend WhatsApp</li>}
-                  {!supaUrl && <li>VITE_SUPABASE_URL - URL do projeto Supabase</li>}
-                  {!supaKey && <li>VITE_SUPABASE_ANON_KEY - Chave pública do Supabase</li>}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Actions */}
-        <div className="text-center space-y-4">
-          <div className="flex justify-center space-x-4">
-            <a
-              href="/whatsapp"
-              className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:from-green-600 hover:to-emerald-600 transition-all"
-            >
-              <Smartphone className="h-5 w-5" />
-              <span>Ir para WhatsApp</span>
-            </a>
-            <button
-              onClick={() => window.location.reload()}
-              className="inline-flex items-center space-x-2 bg-slate-700 text-white px-6 py-3 rounded-xl font-medium hover:bg-slate-600 transition-all"
-            >
-              <RefreshCw className="h-5 w-5" />
-              <span>Recarregar Testes</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Backend Setup Guide */}
-        <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl p-6">
-          <h2 className="text-xl font-bold text-white mb-4">🚀 Setup do Backend (Sem instalação no PC)</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-white font-medium mb-3">1. Hospedar Backend:</h3>
-              <div className="space-y-2">
-                <a
-                  href="https://render.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-sm transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>Render.com (Recomendado)</span>
-                </a>
-                <a
-                  href="https://railway.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 text-sm transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span>Railway.app</span>
-                </a>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="text-white font-medium mb-3">2. Endpoints Necessários:</h3>
-              <div className="space-y-1 text-sm text-slate-300">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <code>GET /health</code>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <code>GET /session/start</code>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <code>GET /session/status</code>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <code>POST /session/close</code>
-                </div>
-              </div>
-            </div>
-          </div>
+        {/* Quick Test */}
+        <div className="text-center">
+          <a
+            href="/whatsapp"
+            className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:from-green-600 hover:to-emerald-600 transition-all"
+          >
+            <Smartphone className="h-5 w-5" />
+            <span>Ir para Conexão WhatsApp</span>
+          </a>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default HealthCheck;

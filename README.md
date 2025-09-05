@@ -43,10 +43,10 @@ npm run dev
 
    **Para desenvolvimento local**, crie um arquivo `.env` na raiz do projeto:
    ```
-   VITE_API_BASE=http://localhost:3333
-   VITE_DEMO_MODE=true
+   VITE_API_BASE=https://seu-backend.onrender.com
    VITE_SUPABASE_URL=https://seu-projeto.supabase.co
    VITE_SUPABASE_ANON_KEY=sua-chave-anon-publica
+   VITE_DEMO_MODE=true
    ```
 
    **Para produção no Bolt Hosting**:
@@ -69,12 +69,12 @@ npm run dev
    **Opção B: Hospedar próprio backend**
    - Use Render.com, Railway.app ou VPS com HTTPS
    - Configure seu backend com os endpoints:
-   - `GET /session/start` - Iniciar sessão e obter QR Code
-   - `GET /session/status` - Status da conexão
-   - `POST /session/close` - Encerrar sessão
-   - `POST /send-message` - Enviar mensagem
-   - `POST /send-media` - Enviar mídia
-   - `GET /health` - Status do servidor
+     - `GET /session/start` - Iniciar sessão e obter QR Code
+     - `GET /session/status` - Status da conexão
+     - `POST /session/close` - Encerrar sessão
+     - `POST /send-message` - Enviar mensagem
+     - `POST /send-media` - Enviar mídia
+     - `GET /health` - Status do servidor
    - Configure CORS para permitir seu domínio Bolt Hosting
 
 4. **Verificar configuração**: 
@@ -124,6 +124,14 @@ O sistema funciona como PWA e pode ser instalado em dispositivos móveis e deskt
 1. **Login**: Use qualquer email/senha para entrar (demo)
 2. **Conectar WhatsApp**: Vá em "Conexão WhatsApp" e escaneie o QR Code
 3. **Enviar mensagens**: Use "Envio em Massa" para campanhas
+
+## ⚖️ Conformidade WhatsApp
+
+- **Conexão via QR Code**: Sempre escaneado pelo usuário em seu próprio aparelho
+- **Uma sessão por vez**: Conectar em outro local encerra a anterior
+- **Consentimento**: Só envie mensagens a quem consentiu (evite ban)
+- **Limites**: Respeite limites de envio e pausas automáticas
+- **Uso legítimo**: Use apenas seus próprios contatos/conversas
 
 ## 🔧 Scripts
 
