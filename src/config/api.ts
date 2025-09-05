@@ -1,34 +1,17 @@
-import axios from 'axios';
+// src/config/api.ts
+export const API_BASE = import.meta.env.VITE_API_BASE;
 
-// Configure sua URL do backend aqui
-export const API_BASE = import.meta.env.VITE_API_BASE || 'https://seu-backend.onrender.com';
+if (!API_BASE) {
+  // Ajuda durante o build: mensagem clara
+  // Em produção, isso evitará uma aplicação "muda" sem API
+  console.warn('[Config] VITE_API_BASE não definida. Usando fallback http://localhost:3333 em dev.');
+}
 
-export const api = axios.create({
-  baseURL: API_BASE,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export const apiBaseUrl = API_BASE || 'http://localhost:3333';
 
-// Interceptor para adicionar token se necessário
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Interceptor para tratar erros
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.code === 'ECONNREFUSED' || error.message === 'Network Error') {
-      console.warn('Backend não disponível. Verifique se o servidor WPPConnect está rodando.');
-    } else {
-      console.error('API Error:', error);
-    }
-    return Promise.reject(error);
-  }
-);
+// Helper para montar URLs
+export const apiUrl = (path: string) => {
+  const base = apiBaseUrl.replace(/\/$/, '');
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${p}`;
+};

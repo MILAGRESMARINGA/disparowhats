@@ -16,6 +16,7 @@ import Kanban from './pages/Kanban';
 import Messages from './pages/Messages';
 import EnvStatus from './pages/EnvStatus';
 import Diagnostics from './pages/Diagnostics';
+import HealthCheck from './pages/HealthCheck';
 
 function App() {
   const { user, loading } = useAuth();
@@ -55,6 +56,7 @@ function App() {
             <Route path="/env" element={<EnvStatus />} />
             <Route path="/status" element={<StatusPage />} />
             <Route path="/diagnostics" element={<Diagnostics />} />
+            <Route path="/health" element={<HealthCheck />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         ) : (
@@ -66,6 +68,7 @@ function App() {
             <Route path="/cadastro" element={<SignUp />} />
             <Route path="/recuperar-senha" element={<ForgotPassword />} />
             <Route path="/status" element={<StatusPage />} />
+            <Route path="/health" element={<HealthCheck />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </>
         )}

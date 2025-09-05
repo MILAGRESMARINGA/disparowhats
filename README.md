@@ -39,12 +39,19 @@ npm run dev
 
 ## ⚙️ Configuração
 
-1. **Configure o Supabase**: Crie um arquivo `.env` na raiz do projeto:
+1. **Configure as Variáveis de Ambiente**: 
+
+   **Para desenvolvimento local**, crie um arquivo `.env` na raiz do projeto:
    ```
-   VITE_SUPABASE_URL=https://xxxxxxxx.supabase.co
-   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-   VITE_API_BASE=https://SUA-URL-PUBLICA-DO-BACKEND
+   VITE_API_BASE=http://localhost:3333
+   VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+   VITE_SUPABASE_ANON_KEY=sua-chave-anon-publica
    ```
+
+   **Para produção no Bolt Hosting**:
+   - Vá em Settings → Environment Variables
+   - Adicione as mesmas variáveis com URLs de produção
+   - Clique em Deploy para republicar
 
 2. **Obter credenciais do Supabase**:
    - Acesse [supabase.com](https://supabase.com) e crie um projeto
@@ -52,12 +59,11 @@ npm run dev
    - Copie a URL e a chave anon/public
    - Execute as migrações SQL na aba SQL Editor
 
-3. **Backend WPPConnect**: Certifique-se de que seu backend possui os endpoints:
+3. **Backend WPPConnect**: Configure seu backend com os endpoints:
    - `GET /session/start` - Iniciar sessão e obter QR Code
    - `GET /session/status` - Status da conexão
    - `POST /session/close` - Encerrar sessão
    - `POST /send-message` - Enviar mensagem
-   - `POST /send-media` - Enviar mídia
 
 ## 🌐 Deploy
 

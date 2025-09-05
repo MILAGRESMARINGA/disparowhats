@@ -1,4 +1,5 @@
 import { http } from './http'
+import { apiUrl } from '../config/api'
 
 export interface SessionStatus {
   status: 'CONNECTED' | 'DISCONNECTED' | 'CONNECTING';
@@ -20,8 +21,9 @@ export interface SendMediaRequest {
 export class WhatsAppService {
   static async startSession(): Promise<SessionStatus> {
     try {
-      const response = await http.get('/session/start');
-      return response.data;
+      const response = await fetch(apiUrl('/session/start'));
+      const data = await response.json();
+      return data;
     } catch (error: any) {
       if (error.code === 'ECONNREFUSED' || error.message === 'Network Error' || error.message.includes('timeout')) {
         console.warn('Backend WPPConnect não está disponível');
@@ -34,8 +36,9 @@ export class WhatsAppService {
 
   static async getSessionStatus(): Promise<SessionStatus> {
     try {
-      const response = await http.get('/session/status');
-      return response.data;
+      const response = await fetch(apiUrl('/session/status'));
+      const data = await response.json();
+      return data;
     } catch (error: any) {
       if (error.code === 'ECONNREFUSED' || error.message === 'Network Error' || error.message.includes('timeout')) {
         console.warn('Backend WPPConnect não está disponível');
@@ -48,7 +51,7 @@ export class WhatsAppService {
 
   static async closeSession(): Promise<void> {
     try {
-      await http.post('/session/close');
+      await fetch(apiUrl('/session/close'), { method: 'POST' });
     } catch (error: any) {
       if (error.code === 'ECONNREFUSED' || error.message === 'Network Error' || error.message.includes('timeout')) {
         console.warn('Backend não disponível para desconectar');
@@ -61,7 +64,11 @@ export class WhatsAppService {
 
   static async sendMessage(data: SendMessageRequest): Promise<void> {
     try {
-      await http.post('/send-message', data);
+      await fetch(apiUrl('/send-message'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       throw new Error('Falha ao enviar mensagem');
@@ -77,10 +84,9 @@ export class WhatsAppService {
         formData.append('caption', data.caption);
       }
 
-      await http.post('/send-media', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      await fetch(apiUrl('/send-media'), {
+        method: 'POST',
+        body: formData
       });
     } catch (error) {
       console.error('Erro ao enviar mídia:', error);
@@ -109,8 +115,9 @@ export class WhatsAppService {
 
   static async health() {
     try {
-      const response = await http.get('/health');
-      return { ok: true, data: response.data };
+      const response = await fetch(apiUrl('/health'));
+      const data = await response.json();
+      return { ok: true, data };
     } catch (error: any) {
       return { ok: false, error: error?.message ?? 'Erro de rede' };
     }

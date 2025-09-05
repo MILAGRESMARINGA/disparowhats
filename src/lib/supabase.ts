@@ -1,32 +1,22 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import env from '../config/env'
+// src/lib/supabase.ts
+import { createClient } from '@supabase/supabase-js';
 
-// Create a fallback client if environment variables are missing
-const supabaseUrl = env.SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseKey = env.SUPABASE_ANON_KEY || 'placeholder-key'
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!env.SUPABASE_URL) {
-  console.warn('⚠️ VITE_SUPABASE_URL não configurada. Usando modo demo.')
-}
-if (!env.SUPABASE_ANON_KEY) {
-  console.warn('⚠️ VITE_SUPABASE_ANON_KEY não configurada. Usando modo demo.')
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('[Supabase] Variáveis ausentes. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
+  // Em dev podemos lançar erro; em prod mostramos UI amigável em HealthCheck
 }
 
-export const supabase: SupabaseClient = createClient(
-  supabaseUrl,
-  supabaseKey,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  }
-)
+export const supabase = createClient(
+  SUPABASE_URL || 'https://placeholder.supabase.co',
+  SUPABASE_ANON_KEY || 'anon-placeholder'
+);
 
 // Types baseados no schema do banco
 export interface Contact {
   id: string
-  user_id: string
   user_id: string
   name: string | null
   phone: string | null
@@ -50,7 +40,6 @@ export interface Group {
 
 export interface Message {
   id: string
-  user_id: string
   template: string | null
   created_at: string
 }
