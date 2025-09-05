@@ -1,6 +1,6 @@
 # Backend WPPConnect para CRM WhatsApp
 
-Servidor Node.js com integração WPPConnect para automação WhatsApp.
+Servidor Node.js com integração WPPConnect para automação WhatsApp com suporte a Redis.
 
 ## 🚀 Instalação e Configuração
 
@@ -9,21 +9,47 @@ Servidor Node.js com integração WPPConnect para automação WhatsApp.
 npm install
 ```
 
-### 2. Configurar Variáveis de Ambiente
+### 2. Instalar Redis (Opcional)
+```bash
+# Local (opcional)
+docker run -d -p 6379:6379 redis:alpine
+
+# Ou usar Redis Cloud/Upstash para produção
+```
+
+### 3. Configurar Variáveis de Ambiente
 ```bash
 cp .env.example .env
 ```
 
-Edite o arquivo `.env` conforme necessário.
+Edite o arquivo `.env`:
+```
+PORT=3333
+SESSION_NAME=crm-pro
+REDIS_URL=redis://localhost:6379  # Opcional
+FRONTEND_ORIGIN=https://seu-frontend.bolt.host
+```
 
-### 3. Iniciar Servidor
+### 4. Iniciar Servidor
 ```bash
 npm start
 # ou para desenvolvimento:
 npm run dev
 ```
 
-O servidor estará disponível em `http://localhost:3333`
+## 📦 Storage de Sessões
+
+O sistema suporta dois tipos de storage:
+
+### Redis (Recomendado para Produção)
+- Configure `REDIS_URL` no .env
+- Sessões persistem entre restarts
+- Melhor para múltiplas instâncias
+
+### Filesystem (Fallback)
+- Usado quando Redis não está disponível
+- Busca por `/data` (volume persistente) ou `/tmp`
+- Adequado para desenvolvimento e instância única
 
 ## 📡 Endpoints da API
 
