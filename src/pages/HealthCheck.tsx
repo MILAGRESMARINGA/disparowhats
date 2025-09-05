@@ -16,7 +16,8 @@ import {
   ExternalLink,
   Copy,
   Save,
-  TestTube
+  TestTube,
+  Info
 } from 'lucide-react';
 
 interface HealthCheck {
