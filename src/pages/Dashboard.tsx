@@ -83,16 +83,15 @@ const Dashboard: React.FC = () => {
         });
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
-        // Fallback para dados simulados se Supabase não estiver disponível
         setStats({
-          totalContacts: 1247,
-          totalGroups: 18,
-          messagesSent: 3456,
-          todayMessages: 127,
-          deliveryRate: 98.5,
-          activeContacts: 892,
-          whatsappStatus: 'Conectado',
-          massSentCount: 3456
+          totalContacts: 0,
+          totalGroups: 0,
+          messagesSent: 0,
+          todayMessages: 0,
+          deliveryRate: 0,
+          activeContacts: 0,
+          whatsappStatus: 'Desconectado',
+          massSentCount: 0
         });
       } finally {
         setLoading(false);

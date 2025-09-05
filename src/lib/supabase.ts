@@ -1,17 +1,15 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { env, isDemo } from '../env';
+import { env } from '../env';
 
 let supabase: SupabaseClient | null = null;
 
-if (!isDemo) {
-  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
-    console.error('Supabase: variáveis ausentes.');
-  } else {
-    supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
-  }
+if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
+  console.error('Supabase: variáveis de ambiente obrigatórias não configuradas.');
+} else {
+  supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 }
 
-export { supabase, isDemo };
+export { supabase };
 
 // Types baseados no schema do banco
 export interface Contact {

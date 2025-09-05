@@ -174,27 +174,6 @@ const WhatsAppPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Demo Mode Info */}
-        {isDemo && (
-          <div className="mb-8 bg-blue-500/10 border border-blue-500/20 rounded-2xl p-6">
-            <div className="flex items-start space-x-3">
-              <Info className="h-6 w-6 text-blue-400 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="text-blue-400 font-bold mb-2">🎭 Modo Demonstração Ativo</h3>
-                <p className="text-blue-300 text-sm mb-4">
-                  O sistema está funcionando em modo demo porque a API WhatsApp não está configurada.
-                  Para ativar funcionalidades reais:
-                </p>
-                <ol className="text-blue-300 text-sm space-y-1 list-decimal list-inside">
-                  <li>Configure um backend WPPConnect em Render/Railway com HTTPS</li>
-                  <li>Defina VITE_API_BASE no Bolt Hosting → Environment Variables</li>
-                  <li>Republique o site</li>
-                  <li>Volte aqui para escanear o QR Code real</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* QR Code Section */}
         <div className="mb-8 bg-slate-800/50 backdrop-blur-xl rounded-2xl p-8 border border-slate-700/50">
@@ -204,7 +183,7 @@ const WhatsAppPage: React.FC = () => {
               <div className="flex items-center justify-center space-x-2 mb-6">
                 <QrCode className="h-6 w-6 text-blue-400" />
                 <h3 className="text-xl font-bold text-white">
-                  {isDemo ? 'QR Code de Demonstração' : 'QR Code WhatsApp'}
+                  QR Code WhatsApp
                 </h3>
               </div>
               
@@ -225,65 +204,32 @@ const WhatsAppPage: React.FC = () => {
                 )}
               </div>
               
-              {isDemo && (
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 max-w-sm mx-auto">
-                  <p className="text-blue-400 text-sm">
-                    ⚠️ Este é um QR Code de demonstração. Configure a API para obter o QR real.
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Instructions */}
             <div>
               <h4 className="text-lg font-semibold text-white mb-4">
-                {isDemo ? 'Como Ativar Conexão Real:' : 'Como conectar:'}
+                Como conectar:
               </h4>
               
-              {isDemo ? (
-                <ol className="text-slate-300 space-y-3">
-                  <li className="flex items-start space-x-3">
-                    <span className="bg-blue-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                    <div>
-                      <p className="font-medium">Configure um backend WPPConnect</p>
-                      <p className="text-sm text-slate-400">Hospede em Render, Railway ou VPS com HTTPS</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start space-x-3">
-                    <span className="bg-blue-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                    <div>
-                      <p className="font-medium">Configure VITE_API_BASE</p>
-                      <p className="text-sm text-slate-400">No Bolt Hosting → Environment Variables</p>
-                    </div>
-                  </li>
-                  <li className="flex items-start space-x-3">
-                    <span className="bg-blue-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                    <div>
-                      <p className="font-medium">Republique o site</p>
-                      <p className="text-sm text-slate-400">Clique em Deploy para aplicar as mudanças</p>
-                    </div>
-                  </li>
-                </ol>
-              ) : (
-                <ol className="text-slate-300 space-y-3">
-                  <li className="flex items-start space-x-3">
-                    <span className="bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                    <span>Abra o WhatsApp no seu celular</span>
-                  </li>
-                  <li className="flex items-start space-x-3">
-                    <span className="bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                    <span>Vá em Menu → Dispositivos conectados</span>
-                  </li>
-                  <li className="flex items-start space-x-3">
-                    <span className="bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                    <span>Toque em "Conectar um dispositivo"</span>
-                  </li>
-                  <li className="flex items-start space-x-3">
-                    <span className="bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
-                    <span>Escaneie o código QR ao lado</span>
-                  </li>
-                </ol>
-              )}
+              <ol className="text-slate-300 space-y-3">
+                <li className="flex items-start space-x-3">
+                  <span className="bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                  <span>Abra o WhatsApp no seu celular</span>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                  <span>Vá em Menu → Dispositivos conectados</span>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                  <span>Toque em "Conectar um dispositivo"</span>
+                </li>
+                <li className="flex items-start space-x-3">
+                  <span className="bg-green-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
+                  <span>Escaneie o código QR ao lado</span>
+                </li>
+              </ol>
             </div>
           </div>
         </div>
@@ -321,7 +267,7 @@ const WhatsAppPage: React.FC = () => {
               ) : (
                 <>
                   <Power className="h-5 w-5" />
-                  <span>{isDemo ? 'Tentar Conexão Real' : 'Iniciar Sessão'}</span>
+                  <span>Iniciar Sessão</span>
                 </>
               )}
             </button>

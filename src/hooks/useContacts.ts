@@ -17,13 +17,7 @@ export const useContacts = () => {
         setContacts(data);
       } catch (error) {
         console.error('Erro ao carregar contatos:', error);
-        // Fallback para localStorage se Supabase não disponível
-        const savedContacts = localStorage.getItem('crm-contacts');
-        if (savedContacts) {
-          setContacts(JSON.parse(savedContacts));
-        } else {
-          setContacts([]);
-        }
+        setContacts([]);
       } finally {
         setLoading(false);
       }
@@ -32,10 +26,6 @@ export const useContacts = () => {
     fetchContacts();
   }, []);
 
-  // Backup no localStorage
-  const saveToLocalStorage = (newContacts: Contact[]) => {
-    localStorage.setItem('crm-contacts', JSON.stringify(newContacts));
-  };
 
   const addContact = async (contactData: any) => {
     try {
@@ -70,30 +60,10 @@ export const useContacts = () => {
       
       const updatedContacts = [...contacts, newContact];
       setContacts(updatedContacts);
-      saveToLocalStorage(updatedContacts);
       return newContact;
     } catch (error) {
       console.error('Erro ao adicionar contato:', error);
-      
-      // Fallback para localStorage
-      const newContact: Contact = {
-        id: Date.now().toString(),
-        user_id: 'local',
-        name: contactData.name,
-        phone: contactData.phone,
-        email: contactData.email || null,
-        status: contactData.status || 'new',
-        tags: contactData.tags || [],
-        notes: contactData.notes || null,
-        property_interest: contactData.propertyInterest || null,
-        budget: contactData.budget || null,
-        created_at: new Date().toISOString()
-      };
-      
-      const updatedContacts = [...contacts, newContact];
-      setContacts(updatedContacts);
-      saveToLocalStorage(updatedContacts);
-      return newContact;
+      throw error;
     }
   };
 
@@ -114,16 +84,9 @@ export const useContacts = () => {
         contact.id === id ? { ...contact, ...updates } : contact
       );
       setContacts(updatedContacts);
-      saveToLocalStorage(updatedContacts);
     } catch (error) {
       console.error('Erro ao atualizar contato:', error);
-      
-      // Fallback para localStorage
-      const updatedContacts = contacts.map(contact =>
-        contact.id === id ? { ...contact, ...updates } : contact
-      );
-      setContacts(updatedContacts);
-      saveToLocalStorage(updatedContacts);
+      throw error;
     }
   };
 
@@ -133,14 +96,9 @@ export const useContacts = () => {
       
       const updatedContacts = contacts.filter(contact => contact.id !== id);
       setContacts(updatedContacts);
-      saveToLocalStorage(updatedContacts);
     } catch (error) {
       console.error('Erro ao deletar contato:', error);
-      
-      // Fallback para localStorage
-      const updatedContacts = contacts.filter(contact => contact.id !== id);
-      setContacts(updatedContacts);
-      saveToLocalStorage(updatedContacts);
+      throw error;
     }
   };
 

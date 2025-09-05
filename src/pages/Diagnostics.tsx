@@ -510,48 +510,6 @@ const Diagnostics: React.FC = () => {
         </div>
 
         {/* Alternative Services */}
-        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-2xl p-6">
-          <h2 className="text-xl font-bold text-white mb-4">
-            🚀 Alternativa: Serviços Prontos
-          </h2>
-          <p className="text-slate-300 mb-4">
-            Se não quiser hospedar backend próprio, use serviços prontos:
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-slate-800/50 rounded-xl p-4">
-              <h3 className="text-white font-medium mb-2">UltraMSG</h3>
-              <p className="text-slate-400 text-sm mb-3">
-                Serviço pago com API pronta para WhatsApp
-              </p>
-              <a
-                href="https://ultramsg.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-300 text-sm flex items-center space-x-1"
-              >
-                <ExternalLink className="h-3 w-3" />
-                <span>Acessar UltraMSG</span>
-              </a>
-            </div>
-
-            <div className="bg-slate-800/50 rounded-xl p-4">
-              <h3 className="text-white font-medium mb-2">Z-API</h3>
-              <p className="text-slate-400 text-sm mb-3">
-                API brasileira para automação WhatsApp
-              </p>
-              <a
-                href="https://z-api.io"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-300 text-sm flex items-center space-x-1"
-              >
-                <ExternalLink className="h-3 w-3" />
-                <span>Acessar Z-API</span>
-              </a>
-            </div>
-          </div>
-        </div>
       </div>
     </Layout>
   );

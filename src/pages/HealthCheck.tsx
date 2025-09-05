@@ -256,10 +256,9 @@ const HealthCheck: React.FC = () => {
             <div className="flex items-start space-x-3">
               <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
               <div className="text-left">
-                <h4 className="text-blue-400 font-medium mb-1">💡 Dica</h4>
+                <h4 className="text-blue-400 font-medium mb-1">Informação</h4>
                 <p className="text-blue-300 text-sm">
-                  O sistema funciona em modo demo mesmo sem configuração. 
-                  Configure as variáveis de ambiente para ativar funcionalidades reais.
+                  Configure as variáveis de ambiente para conectar com o backend WhatsApp.
                 </p>
               </div>
             </div>

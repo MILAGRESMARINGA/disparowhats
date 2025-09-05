@@ -51,13 +51,7 @@ const SendMass: React.FC = () => {
         setContacts(data);
       } catch (error) {
         console.error('Erro ao carregar contatos:', error);
-        // Fallback para dados simulados se Supabase não disponível
-        const mockContacts: Contact[] = [
-          { id: '1', name: 'João Silva', phone: '5511999887766', type: 'cliente', created_at: new Date().toISOString() },
-          { id: '2', name: 'Maria Santos', phone: '5511988776655', type: 'lead', created_at: new Date().toISOString() },
-          { id: '3', name: 'Carlos Oliveira', phone: '5511977665544', type: 'cliente', created_at: new Date().toISOString() },
-        ];
-        setContacts(mockContacts);
+        setContacts([]);
       }
     };
 

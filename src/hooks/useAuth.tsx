@@ -59,14 +59,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      if (isDemo || !supabase) {
-        // DEMO: aceita qualquer credencial
-        const demoUser = { id: 'demo', email, name: email.split('@')[0] || 'Usuário' };
-        localStorage.setItem('demo_user', JSON.stringify(demoUser));
-        setUser(demoUser);
-        return;
+      if (!supabase) {
+        throw new Error('Sistema de autenticação não configurado');
       }
-      // REAL: supabase auth
+      
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       setUser({ 
@@ -80,12 +76,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (email: string, password: string): Promise<boolean> => {
-    if (isDemo || !supabase) {
-      // DEMO: simular cadastro bem-sucedido
-      const demoUser = { id: 'demo', email, name: email.split('@')[0] || 'Usuário' };
-      localStorage.setItem('demo_user', JSON.stringify(demoUser));
-      setUser(demoUser);
-      return true;
+    if (!supabase) {
+      throw new Error('Sistema de autenticação não configurado');
     }
 
     try {

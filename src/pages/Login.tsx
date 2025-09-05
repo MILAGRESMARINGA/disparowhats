@@ -170,27 +170,6 @@ const LoginPage: React.FC = () => {
               )}
             </button>
 
-            {/* Demo Info */}
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-              <p className="text-blue-400 text-sm text-center mb-3">
-                <strong>Modo Demo:</strong> Use qualquer email/senha ou clique no botão de teste
-              </p>
-              
-              {/* Test User Login Button */}
-              <button
-                type="button"
-                onClick={handleTestUserLogin}
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-3 px-4 rounded-lg font-medium hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2"
-              >
-                <TestTube className="h-4 w-4" />
-                <span>Entrar com Usuário de Teste</span>
-              </button>
-              
-              <p className="text-blue-300 text-xs text-center mt-2">
-                Ou use qualquer email/senha válidos para modo demo
-              </p>
-            </div>
           </form>
         </div>
 

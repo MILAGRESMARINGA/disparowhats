@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
-import EnvBanner from './components/EnvBanner';
 import StatusPage from './pages/Status';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
@@ -38,7 +37,6 @@ function App() {
 
   return (
     <Router>
-      <EnvBanner />
       <Routes>
         {user ? (
           <>

@@ -41,18 +41,13 @@ npm run dev
 
 1. **Configure as Variáveis de Ambiente**:
 
-   **Para desenvolvimento local**, crie um arquivo `.env` na raiz do projeto:
+   **No Bolt Hosting**, vá em Settings → Environment Variables e adicione:
    ```
-   VITE_API_BASE=https://seu-backend.onrender.com
+   VITE_API_BASE=https://seu-backend.railway.app/api
    VITE_SUPABASE_URL=https://seu-projeto.supabase.co
    VITE_SUPABASE_ANON_KEY=sua-chave-anon-publica
-   VITE_DEMO_MODE=true
    ```
 
-   **Para produção no Bolt Hosting**:
-   - Vá em Settings → Environment Variables
-   - Adicione as mesmas variáveis com URLs de produção (use HTTPS para VITE_API_BASE)
-   - Clique em Deploy para republicar
 
 2. **Obter credenciais do Supabase**:
    - Acesse [supabase.com](https://supabase.com) e crie um projeto
@@ -62,11 +57,7 @@ npm run dev
 
 3. **Backend WPPConnect** (Hospedagem Pública - SEM setup no PC do usuário):
    
-   **Opção A: Usar serviço pronto**
-   - UltraMSG, Z-API ou similar
-   - Configure VITE_API_BASE com a URL da API
-   
-   **Opção B: Hospedar próprio backend**
+   **Hospedar backend próprio:**
    - Use Render.com, Railway.app ou VPS com HTTPS
    - Configure seu backend com os endpoints:
      - `GET /session/start` - Iniciar sessão e obter QR Code
@@ -80,16 +71,7 @@ npm run dev
 4. **Verificar configuração**: 
    - Acesse `/health` no seu app para diagnosticar problemas
    - Acesse `/whatsapp` para conectar e obter QR Code
-   - O sistema funciona em modo DEMO se a API não estiver disponível
 
-## 🎭 Modo Demo
-
-O sistema possui modo demo automático que:
-- Funciona mesmo sem backend configurado
-- Exibe QR Code de demonstração
-- Simula envio de mensagens
-- Permite testar toda a interface
-- Mostra instruções claras para ativação real
 
 ## 🌐 Deploy
 
