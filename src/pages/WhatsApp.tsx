@@ -358,9 +358,4 @@ const WhatsApp: React.FC = () => {
       </div>
     </Layout>
   );
-
-  function copyToClipboard(text: string) {
-    navigator.clipboard.writeText(text);
-    alert('📋 Copiado!');
-  }
 };
