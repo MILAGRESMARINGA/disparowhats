@@ -287,7 +287,7 @@ const Kanban: React.FC = () => {
               <select
                 value={tagFilter}
                 onChange={(e) => setTagFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="px-4 py-3 bg-slate-800 border-2 border-slate-500 rounded-xl text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 hover:border-slate-400 transition-all shadow-lg"
               >
                 <option value="all">Todos os perfis</option>
                 {clientProfiles.map((profile) => (
@@ -301,7 +301,7 @@ const Kanban: React.FC = () => {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="px-4 py-3 bg-slate-800 border-2 border-slate-500 rounded-xl text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 hover:border-slate-400 transition-all shadow-lg"
               >
                 <option value="all">Todos os tipos</option>
                 {propertyTypes.map((type) => (
@@ -441,7 +441,7 @@ const Kanban: React.FC = () => {
                           <select
                             value={contact.status}
                             onChange={(e) => handleStatusChange(contact.id, e.target.value as ContactStatus)}
-                            className="w-full text-xs bg-slate-600/50 border border-slate-500/50 rounded px-2 py-1 text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+                            className="w-full text-xs bg-slate-800 border-2 border-slate-500 rounded-lg px-3 py-2 text-white font-medium focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 hover:border-slate-400 transition-all shadow-sm"
                           >
                             <option value="new">Novo Lead</option>
                             <option value="contacted">🟠 Em Atendimento</option>
