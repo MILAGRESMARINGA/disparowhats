@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
-import { AuthProvider } from './hooks/useAuth.tsx';
+import { AuthProvider } from './hooks/useAuth';
 import './index.css';
 
 // ⚠️ PWA/Service Worker desativado temporariamente para resolver problemas de publicação

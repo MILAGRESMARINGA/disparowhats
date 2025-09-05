@@ -1,163 +1,78 @@
 import React, { useEffect, useState } from 'react';
-import { apiUrl, apiBaseUrl } from '../config/api';
-import { supabase } from '../lib/supabase';
 import { 
+  Copy, 
+  Globe, 
+  Settings, 
+  RefreshCw, 
   CheckCircle, 
   AlertCircle, 
-  Activity,
-  CheckCircle,
-  AlertCircle,
-  RefreshCw,
-  Settings,
-  Send,
-  Globe,
-  Server,
   Smartphone,
-  Zap,
-  Copy,
-  Save,
-  TestTube,
   Info
 } from 'lucide-react';
 import { ExternalLink as ExternalLinkIcon } from 'lucide-react';
+import { API_BASE } from '../config/api';
 
-interface HealthCheck {
-  endpoint: string;
-  status: 'checking' | 'success' | 'error';
-  response?: any;
-  error?: string;
-  duration?: number;
-}
+type Health = { 
+  endpoint: string; 
+  status: 'checking' | 'success' | 'error'; 
+  duration?: number; 
+  error?: string; 
+  response?: any 
+};
 
 const HealthCheck: React.FC = () => {
-  const [apiUrl, setApiUrl] = useState(
-    localStorage.getItem('custom_api_url') || 
-    import.meta.env.VITE_API_BASE || 
-    'https://seu-backend.onrender.com'
-  );
-  const [tempApiUrl, setTempApiUrl] = useState(apiUrl);
-  const [healthChecks, setHealthChecks] = useState<HealthCheck[]>([]);
+  const [apiUrl, setApiUrl] = useState<string>(API_BASE);
+  const [checks, setChecks] = useState<Health[]>([]);
   const [testing, setTesting] = useState(false);
-  const [testPhone, setTestPhone] = useState('5511999887766');
-  const [testMessage, setTestMessage] = useState('🤖 Teste do CRM WhatsApp Pro - ' + new Date().toLocaleTimeString());
 
-  const endpoints = [
-    { path: '/health', name: 'Health Check', description: 'Verifica se o servidor está online' },
-    { path: '/session/status', name: 'WhatsApp Status', description: 'Status da conexão WhatsApp' },
-    { path: '/session/start', name: 'Session Start', description: 'Iniciar sessão WhatsApp' }
-  ];
+  const endpoints = ['/health', '/session/status', '/session/start'];
 
-  useEffect(() => {
-    if (apiUrl !== import.meta.env.VITE_API_BASE) {
-      localStorage.setItem('custom_api_url', apiUrl);
-    }
-  }, [apiUrl]);
-
-  const runHealthCheck = async (endpoint: string): Promise<HealthCheck> => {
+  const runHealthCheck = async (endpoint: string): Promise<Health> => {
     const startTime = Date.now();
-    const fullUrl = `${apiUrl}${endpoint}`;
-    
     try {
-      const response = await fetch(fullUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(10000) // 10 second timeout
+      const response = await fetch(`${apiUrl}${endpoint}`, {
+        signal: AbortSignal.timeout(8000)
       });
-
       const duration = Date.now() - startTime;
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json();
-      
-      return {
-        endpoint,
-        status: 'success',
-        response: data,
-        duration
-      };
+      const data = await response.json().catch(() => ({}));
+      return { endpoint, status: 'success', response: data, duration };
     } catch (error: any) {
       const duration = Date.now() - startTime;
-      
       let errorMessage = 'Erro desconhecido';
+      
       if (error.name === 'TimeoutError') {
-        errorMessage = 'Timeout - servidor não respondeu em 10s';
-      } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-        errorMessage = 'Erro de rede - verifique a URL e CORS';
-      } else if (error.message.includes('ERR_NETWORK')) {
-        errorMessage = 'Erro de conexão - backend pode estar offline';
+        errorMessage = 'Timeout - servidor não respondeu';
+      } else if (error.message.includes('Failed to fetch')) {
+        errorMessage = 'Erro de rede - verifique URL e CORS';
       } else {
         errorMessage = error.message;
       }
 
-      return {
-        endpoint,
-        status: 'error',
-        error: errorMessage,
-        duration
-      };
+      return { endpoint, status: 'error', error: errorMessage, duration };
     }
   };
 
   const runAllChecks = async () => {
     setTesting(true);
-    const checks: HealthCheck[] = [];
+    const newChecks: Health[] = [];
     
     for (const endpoint of endpoints) {
-      const check = { ...endpoint, endpoint: endpoint.path, status: 'checking' as const };
-      checks.push(check);
-      setHealthChecks([...checks]);
+      const check = { endpoint, status: 'checking' as const };
+      newChecks.push(check);
+      setChecks([...newChecks]);
       
-      const result = await runHealthCheck(endpoint.path);
-      const index = checks.findIndex(c => c.endpoint === endpoint.path);
-      checks[index] = result;
-      setHealthChecks([...checks]);
+      const result = await runHealthCheck(endpoint);
+      const index = newChecks.findIndex(c => c.endpoint === endpoint);
+      newChecks[index] = result;
+      setChecks([...newChecks]);
     }
     
     setTesting(false);
-  };
-
-  const testSendMessage = async () => {
-    if (!testPhone || !testMessage) {
-      alert('Preencha telefone e mensagem para teste');
-      return;
-    }
-
-    setTesting(true);
-    
-    try {
-      const response = await fetch(`${apiUrl}/send-message`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to: testPhone,
-          message: testMessage
-        })
-      });
-
-      const result = await response.json();
-      
-      if (response.ok) {
-        alert('✅ Mensagem enviada com sucesso!\n\n' + JSON.stringify(result, null, 2));
-      } else {
-        alert('❌ Erro no envio:\n\n' + JSON.stringify(result, null, 2));
-      }
-    } catch (error: any) {
-      alert('❌ Erro de conexão:\n\n' + error.message);
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  const saveApiUrl = () => {
-    setApiUrl(tempApiUrl);
-    alert('✅ URL da API salva! Execute os testes novamente.');
   };
 
   const copyToClipboard = (text: string) => {
@@ -165,7 +80,7 @@ const HealthCheck: React.FC = () => {
     alert('📋 Copiado para a área de transferência!');
   };
 
-  const getStatusIcon = (status: HealthCheck['status']) => {
+  const getStatusIcon = (status: Health['status']) => {
     switch (status) {
       case 'checking': return <RefreshCw className="h-4 w-4 text-blue-400 animate-spin" />;
       case 'success': return <CheckCircle className="h-4 w-4 text-green-400" />;
@@ -173,13 +88,17 @@ const HealthCheck: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: HealthCheck['status']) => {
+  const getStatusColor = (status: Health['status']) => {
     switch (status) {
       case 'checking': return 'bg-blue-500/10 border-blue-500/20';
       case 'success': return 'bg-green-500/10 border-green-500/20';
       case 'error': return 'bg-red-500/10 border-red-500/20';
     }
   };
+
+  useEffect(() => {
+    runAllChecks();
+  }, [apiUrl]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-6">
@@ -262,8 +181,69 @@ const HealthCheck: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Test */}
-        <div className="text-center">
+        {/* API Health Checks */}
+        <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl p-6 border border-slate-700/50">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <Globe className="h-6 w-6 text-green-400" />
+              <h2 className="text-xl font-bold text-white">Testes de API</h2>
+            </div>
+            <button
+              onClick={runAllChecks}
+              disabled={testing}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center space-x-2"
+            >
+              {testing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span>Testando...</span>
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Executar Testes</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {endpoints.map((endpoint) => {
+              const check = checks.find(c => c.endpoint === endpoint);
+              
+              return (
+                <div key={endpoint} className={`p-4 rounded-xl border ${check ? getStatusColor(check.status) : 'bg-slate-700/30 border-slate-600/30'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {check ? getStatusIcon(check.status) : <Globe className="h-4 w-4 text-slate-400" />}
+                      <div>
+                        <h3 className="text-white font-medium">{endpoint}</h3>
+                        <code className="text-xs text-slate-500">{apiUrl}{endpoint}</code>
+                      </div>
+                    </div>
+                    
+                    {check && (
+                      <div className="text-right">
+                        {check.duration && (
+                          <p className="text-slate-400 text-xs">{check.duration}ms</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {check?.error && (
+                    <div className="mt-3 bg-red-900/30 rounded-lg p-3">
+                      <p className="text-red-400 text-sm">❌ {check.error}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="text-center space-y-4">
           <a
             href="/whatsapp"
             className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-xl font-medium hover:from-green-600 hover:to-emerald-600 transition-all"
@@ -271,6 +251,19 @@ const HealthCheck: React.FC = () => {
             <Smartphone className="h-5 w-5" />
             <span>Ir para Conexão WhatsApp</span>
           </a>
+          
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 max-w-2xl mx-auto">
+            <div className="flex items-start space-x-3">
+              <Info className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+              <div className="text-left">
+                <h4 className="text-blue-400 font-medium mb-1">💡 Dica</h4>
+                <p className="text-blue-300 text-sm">
+                  O sistema funciona em modo demo mesmo sem configuração. 
+                  Configure as variáveis de ambiente para ativar funcionalidades reais.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

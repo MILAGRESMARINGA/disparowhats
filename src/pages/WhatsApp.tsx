@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { useWhatsAppConnection } from '../hooks/useWhatsAppConnection';
+import { WhatsAppService } from '../services/whatsapp';
 import { 
   Smartphone, 
   QrCode, 
@@ -9,49 +9,103 @@ import {
   RefreshCw,
   Power,
   PowerOff,
-  Wifi,
-  WifiOff,
   Settings,
-  ExternalLink,
   Copy,
-  Info
+  Info,
+  ExternalLink
 } from 'lucide-react';
 
 const WhatsAppPage: React.FC = () => {
-  const { status, qrcode, message, loading, start, stop, refresh } = useWhatsAppConnection();
+  const [status, setStatus] = useState<string>('CHECANDO...');
+  const [qrcode, setQrcode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string>('');
+  const [isDemo, setIsDemo] = useState(false);
 
-  const getStatusIcon = () => {
-    switch (status) {
-      case 'conectado':
-        return <CheckCircle className="h-8 w-8 text-green-400" />;
-      case 'aguardando':
-        return <RefreshCw className="h-8 w-8 text-yellow-400 animate-spin" />;
-      case 'demo':
-        return <Info className="h-8 w-8 text-blue-400" />;
-      case 'erro':
-        return <AlertCircle className="h-8 w-8 text-red-400" />;
-      default:
-        return <WifiOff className="h-8 w-8 text-gray-400" />;
+  const checkStatus = async () => {
+    try {
+      setLoading(true);
+      const result = await WhatsAppService.getSessionStatus();
+      
+      if (result.demo) {
+        setIsDemo(true);
+        setStatus('DEMO');
+        setMessage('Modo demonstração ativo - configure VITE_API_BASE para conexão real');
+      } else {
+        setIsDemo(false);
+        setStatus(result.status || 'DESCONHECIDO');
+        setMessage(result.status === 'CONNECTED' ? 'WhatsApp conectado e funcionando' : 'WhatsApp desconectado');
+      }
+    } catch (error) {
+      setStatus('ERRO');
+      setMessage(error instanceof Error ? error.message : 'Erro desconhecido');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusText = () => {
-    switch (status) {
-      case 'conectado': return 'WhatsApp Conectado';
-      case 'aguardando': return 'Aguardando Conexão...';
-      case 'demo': return 'Modo Demonstração';
-      case 'erro': return 'Erro de Conexão';
-      default: return 'WhatsApp Desconectado';
+  const startSession = async () => {
+    try {
+      setLoading(true);
+      setMessage('Gerando QR Code...');
+      
+      const result = await WhatsAppService.startSession();
+      
+      if (result.demo) {
+        setIsDemo(true);
+        setQrcode(result.qrcode);
+        setStatus('DEMO');
+        setMessage('QR Code de demonstração - configure backend para QR real');
+      } else {
+        setIsDemo(false);
+        if (result.qrcode) {
+          const qrData = result.qrcode.startsWith('data:') ? result.qrcode : `data:image/png;base64,${result.qrcode}`;
+          setQrcode(qrData);
+          setStatus('AGUARDANDO');
+          setMessage('Escaneie o QR Code com seu WhatsApp');
+          
+          // Poll for connection
+          const pollInterval = setInterval(async () => {
+            try {
+              const statusResult = await WhatsAppService.getSessionStatus();
+              if (statusResult.status === 'CONNECTED') {
+                setStatus('CONECTADO');
+                setMessage('WhatsApp conectado com sucesso!');
+                setQrcode(null);
+                clearInterval(pollInterval);
+              }
+            } catch (error) {
+              console.error('Erro ao verificar status:', error);
+            }
+          }, 3000);
+          
+          // Clear polling after 5 minutes
+          setTimeout(() => clearInterval(pollInterval), 300000);
+        } else if (result.status === 'CONNECTED') {
+          setStatus('CONECTADO');
+          setMessage('WhatsApp já estava conectado');
+          setQrcode(null);
+        }
+      }
+    } catch (error) {
+      setStatus('ERRO');
+      setMessage(error instanceof Error ? error.message : 'Erro ao iniciar sessão');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusColor = () => {
-    switch (status) {
-      case 'conectado': return 'from-green-500/20 to-emerald-500/20 border-green-500/30';
-      case 'aguardando': return 'from-yellow-500/20 to-amber-500/20 border-yellow-500/30';
-      case 'demo': return 'from-blue-500/20 to-cyan-500/20 border-blue-500/30';
-      case 'erro': return 'from-red-500/20 to-rose-500/20 border-red-500/30';
-      default: return 'from-gray-500/20 to-slate-500/20 border-gray-500/30';
+  const closeSession = async () => {
+    try {
+      setLoading(true);
+      await WhatsAppService.closeSession();
+      setStatus('DESCONECTADO');
+      setMessage('Sessão encerrada com sucesso');
+      setQrcode(null);
+    } catch (error) {
+      setMessage('Erro ao encerrar sessão');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -59,6 +113,35 @@ const WhatsAppPage: React.FC = () => {
     navigator.clipboard.writeText(text);
     alert('📋 Copiado para a área de transferência!');
   };
+
+  const getStatusIcon = () => {
+    switch (status) {
+      case 'CONECTADO':
+        return <CheckCircle className="h-8 w-8 text-green-400" />;
+      case 'AGUARDANDO':
+        return <RefreshCw className="h-8 w-8 text-yellow-400 animate-spin" />;
+      case 'DEMO':
+        return <Info className="h-8 w-8 text-blue-400" />;
+      case 'ERRO':
+        return <AlertCircle className="h-8 w-8 text-red-400" />;
+      default:
+        return <Smartphone className="h-8 w-8 text-gray-400" />;
+    }
+  };
+
+  const getStatusColor = () => {
+    switch (status) {
+      case 'CONECTADO': return 'from-green-500/20 to-emerald-500/20 border-green-500/30';
+      case 'AGUARDANDO': return 'from-yellow-500/20 to-amber-500/20 border-yellow-500/30';
+      case 'DEMO': return 'from-blue-500/20 to-cyan-500/20 border-blue-500/30';
+      case 'ERRO': return 'from-red-500/20 to-rose-500/20 border-red-500/30';
+      default: return 'from-gray-500/20 to-slate-500/20 border-gray-500/30';
+    }
+  };
+
+  useEffect(() => {
+    checkStatus();
+  }, []);
 
   return (
     <Layout title="Conexão WhatsApp">
@@ -82,7 +165,7 @@ const WhatsAppPage: React.FC = () => {
             {getStatusIcon()}
             <div>
               <h2 className="text-2xl font-bold text-white mb-2">
-                {getStatusText()}
+                {status}
               </h2>
               <p className="text-slate-300 max-w-md">
                 {message}
@@ -92,15 +175,15 @@ const WhatsAppPage: React.FC = () => {
         </div>
 
         {/* Demo Mode Info */}
-        {status === 'demo' && (
+        {isDemo && (
           <div className="mb-8 bg-blue-500/10 border border-blue-500/20 rounded-2xl p-6">
             <div className="flex items-start space-x-3">
               <Info className="h-6 w-6 text-blue-400 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="text-blue-400 font-bold mb-2">🎭 Modo Demonstração Ativo</h3>
                 <p className="text-blue-300 text-sm mb-4">
-                  O sistema está funcionando em modo demo porque a API WhatsApp não está configurada ou acessível.
-                  Para usar funcionalidades reais:
+                  O sistema está funcionando em modo demo porque a API WhatsApp não está configurada.
+                  Para ativar funcionalidades reais:
                 </p>
                 <ol className="text-blue-300 text-sm space-y-1 list-decimal list-inside">
                   <li>Configure um backend WPPConnect em Render/Railway com HTTPS</li>
@@ -121,7 +204,7 @@ const WhatsAppPage: React.FC = () => {
               <div className="flex items-center justify-center space-x-2 mb-6">
                 <QrCode className="h-6 w-6 text-blue-400" />
                 <h3 className="text-xl font-bold text-white">
-                  {status === 'demo' ? 'QR Code de Demonstração' : 'QR Code WhatsApp'}
+                  {isDemo ? 'QR Code de Demonstração' : 'QR Code WhatsApp'}
                 </h3>
               </div>
               
@@ -142,7 +225,7 @@ const WhatsAppPage: React.FC = () => {
                 )}
               </div>
               
-              {status === 'demo' && (
+              {isDemo && (
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 max-w-sm mx-auto">
                   <p className="text-blue-400 text-sm">
                     ⚠️ Este é um QR Code de demonstração. Configure a API para obter o QR real.
@@ -154,10 +237,10 @@ const WhatsAppPage: React.FC = () => {
             {/* Instructions */}
             <div>
               <h4 className="text-lg font-semibold text-white mb-4">
-                {status === 'demo' ? 'Como Ativar Conexão Real:' : 'Como conectar:'}
+                {isDemo ? 'Como Ativar Conexão Real:' : 'Como conectar:'}
               </h4>
               
-              {status === 'demo' ? (
+              {isDemo ? (
                 <ol className="text-slate-300 space-y-3">
                   <li className="flex items-start space-x-3">
                     <span className="bg-blue-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
@@ -224,9 +307,9 @@ const WhatsAppPage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-          {status === 'desconectado' || status === 'demo' ? (
+          {status === 'DESCONECTADO' || status === 'DEMO' || status === 'CHECANDO...' ? (
             <button
-              onClick={start}
+              onClick={startSession}
               disabled={loading}
               className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-4 rounded-xl font-medium hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2"
             >
@@ -238,13 +321,13 @@ const WhatsAppPage: React.FC = () => {
               ) : (
                 <>
                   <Power className="h-5 w-5" />
-                  <span>{status === 'demo' ? 'Tentar Conexão Real' : 'Iniciar Sessão'}</span>
+                  <span>{isDemo ? 'Tentar Conexão Real' : 'Iniciar Sessão'}</span>
                 </>
               )}
             </button>
           ) : (
             <button
-              onClick={stop}
+              onClick={closeSession}
               disabled={loading}
               className="bg-gradient-to-r from-red-500 to-rose-500 text-white px-8 py-4 rounded-xl font-medium hover:from-red-600 hover:to-rose-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2"
             >
@@ -263,7 +346,7 @@ const WhatsAppPage: React.FC = () => {
           )}
 
           <button
-            onClick={refresh}
+            onClick={checkStatus}
             disabled={loading}
             className="bg-slate-700 text-white px-8 py-4 rounded-xl font-medium hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-2"
           >

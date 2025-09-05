@@ -1,18 +1,17 @@
-// src/lib/supabase.ts
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { env, isDemo } from '../env';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+let supabase: SupabaseClient | null = null;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('[Supabase] Variáveis ausentes. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.');
-  // Em dev podemos lançar erro; em prod mostramos UI amigável em HealthCheck
+if (!isDemo) {
+  if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) {
+    console.error('Supabase: variáveis ausentes.');
+  } else {
+    supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+  }
 }
 
-export const supabase = createClient(
-  SUPABASE_URL || 'https://placeholder.supabase.co',
-  SUPABASE_ANON_KEY || 'anon-placeholder'
-);
+export { supabase, isDemo };
 
 // Types baseados no schema do banco
 export interface Contact {

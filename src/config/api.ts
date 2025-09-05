@@ -1,9 +1,7 @@
-// src/config/api.ts
-export const API_BASE = import.meta.env.VITE_API_BASE;
+import { env } from '../env';
 
-export const DEMO_MODE =
-  String(import.meta.env.VITE_DEMO_MODE || '')
-    .toLowerCase() === 'true';
+const fallback = 'http://localhost:3333'; // para dev local
+export const API_BASE = env.API_BASE || fallback;
 
 export function ensureHttps(url?: string) {
   if (!url) return '';
