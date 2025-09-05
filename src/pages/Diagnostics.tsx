@@ -432,7 +432,7 @@ const Diagnostics: React.FC = () => {
                 </p>
                 <ul className="text-slate-400 text-sm space-y-1 list-disc list-inside">
                   <li>Verifique FRONTEND_ORIGIN no .env do backend</li>
-                  <li>Temporariamente use <code className="bg-slate-700 px-1 rounded">cors({{ origin: '*' }})</code></li>
+                  <li>Temporariamente use <code className="bg-slate-700 px-1 rounded">cors({`{ origin: '*' }`})</code></li>
                   <li>Certifique-se que backend está rodando</li>
                 </ul>
               </div>
