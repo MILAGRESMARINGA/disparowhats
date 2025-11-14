@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import { useToast } from './hooks/useToast';
+import { ToastContainer } from './components/ui/Toast';
 import StatusPage from './pages/Status';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
@@ -19,6 +21,7 @@ import HealthCheck from './pages/HealthCheck';
 
 function App() {
   const { user, loading } = useAuth();
+  const { toasts, removeToast } = useToast();
 
   if (loading) {
     return (
@@ -33,6 +36,9 @@ function App() {
 
   return (
     <Router>
+      {/* Toast Container Global */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+
       <Routes>
         {user ? (
           <>
