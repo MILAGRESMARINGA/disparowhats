@@ -18,6 +18,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check for master user session in localStorage
+    const masterSession = localStorage.getItem('master_user');
+    if (masterSession) {
+      try {
+        setUser(JSON.parse(masterSession));
+        setLoading(false);
+        return;
+      } catch {
+        localStorage.removeItem('master_user');
+      }
+    }
+
     if (!supabase) {
       setLoading(false);
       return;
@@ -64,11 +76,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!masterError && isMaster) {
         // Master login successful - create a special session
-        setUser({
+        const masterUser = {
           id: 'master-admin',
           email: email,
           name: 'Administrador Master'
-        });
+        };
+        setUser(masterUser);
+        localStorage.setItem('master_user', JSON.stringify(masterUser));
         return;
       }
 
@@ -102,6 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     if (supabase) await supabase.auth.signOut();
+    localStorage.removeItem('master_user');
     setUser(null);
   };
 

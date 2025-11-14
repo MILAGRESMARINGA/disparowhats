@@ -2,6 +2,17 @@ import { supabase, Contact, Group, Message, SendLog } from '../lib/supabase'
 
 // Função para obter o usuário atual
 const getCurrentUser = async () => {
+  // Check for master user session
+  const masterSession = localStorage.getItem('master_user');
+  if (masterSession) {
+    try {
+      const masterUser = JSON.parse(masterSession);
+      return { id: masterUser.id };
+    } catch {
+      localStorage.removeItem('master_user');
+    }
+  }
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Usuário não autenticado')
   return user
@@ -12,11 +23,16 @@ export const contactsService = {
   // Buscar todos os contatos
   async getAll(): Promise<Contact[]> {
     try {
-      const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
+      const user = await getCurrentUser();
+      let query = supabase.from('contacts').select('*');
+
+      // Master user sees all contacts, regular users see only their own
+      if (user.id !== 'master-admin') {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
       if (error) throw error
       return data || []
     } catch (error) {
@@ -102,13 +118,16 @@ export const contactsService = {
 export const groupsService = {
   async getAll(): Promise<Group[]> {
     try {
-      const user = await getCurrentUser()
-      const { data, error } = await supabase
-        .from('groups')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-      
+      const user = await getCurrentUser();
+      let query = supabase.from('groups').select('*');
+
+      // Master user sees all groups, regular users see only their own
+      if (user.id !== 'master-admin') {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
       if (error) throw error
       return data || []
     } catch (error) {
@@ -248,17 +267,20 @@ export const messagesService = {
 export const sendLogsService = {
   async getAll(): Promise<SendLog[]> {
     try {
-      const user = await getCurrentUser()
-      const { data, error } = await supabase
-        .from('send_logs')
-        .select(`
-          *,
-          contacts(name, phone),
-          messages(template)
-        `)
-        .eq('user_id', user.id)
-        .order('timestamp', { ascending: false })
-      
+      const user = await getCurrentUser();
+      let query = supabase.from('send_logs').select(`
+        *,
+        contacts(name, phone),
+        messages(template)
+      `);
+
+      // Master user sees all logs, regular users see only their own
+      if (user.id !== 'master-admin') {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query.order('timestamp', { ascending: false });
+
       if (error) throw error
       return data || []
     } catch (error) {
@@ -307,17 +329,23 @@ export const sendLogsService = {
   // Contar mensagens enviadas hoje
   async getTodayCount(): Promise<number> {
     try {
-      const user = await getCurrentUser()
-      const today = new Date().toISOString().split('T')[0]
-      
-      const { count, error } = await supabase
+      const user = await getCurrentUser();
+      const today = new Date().toISOString().split('T')[0];
+
+      let query = supabase
         .from('send_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
+        .select('*', { count: 'exact', head: true });
+
+      // Master user sees all counts, regular users see only their own
+      if (user.id !== 'master-admin') {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { count, error } = await query
         .gte('timestamp', `${today}T00:00:00.000Z`)
         .lt('timestamp', `${today}T23:59:59.999Z`)
-        .in('status', ['sent', 'delivered'])
-      
+        .in('status', ['sent', 'delivered']);
+
       if (error) throw error
       return count || 0
     } catch (error) {
@@ -329,19 +357,23 @@ export const sendLogsService = {
   // Estatísticas por status
   async getStats(): Promise<Record<string, number>> {
     try {
-      const user = await getCurrentUser()
-      const { data, error } = await supabase
-        .from('send_logs')
-        .select('status')
-        .eq('user_id', user.id)
-      
+      const user = await getCurrentUser();
+      let query = supabase.from('send_logs').select('status');
+
+      // Master user sees all stats, regular users see only their own
+      if (user.id !== 'master-admin') {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error
-      
+
       const stats: Record<string, number> = {}
       data?.forEach(log => {
         stats[log.status || 'unknown'] = (stats[log.status || 'unknown'] || 0) + 1
       })
-      
+
       return stats
     } catch (error) {
       console.warn('Failed to get stats, returning empty object')
