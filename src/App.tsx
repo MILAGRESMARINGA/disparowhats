@@ -16,7 +16,6 @@ import Messages from './pages/Messages';
 import EnvStatus from './pages/EnvStatus';
 import Diagnostics from './pages/Diagnostics';
 import HealthCheck from './pages/HealthCheck';
-import WhatsAppPage from './pages/WhatsApp';
 
 function App() {
   const { user, loading } = useAuth();
@@ -24,7 +23,6 @@ function App() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
-        <EnvBanner />
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-white text-lg">Carregando CRM...</p>
@@ -33,17 +31,14 @@ function App() {
     );
   }
 
-  console.log('App render - user:', user, 'loading:', loading, 'isAuthenticated:', !!user);
-
   return (
     <Router>
       <Routes>
         {user ? (
           <>
-            {console.log('🏠 Renderizando rotas autenticadas para:', user.name)}
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/whatsapp" element={<WhatsAppPage />} />
+            <Route path="/whatsapp" element={<WhatsApp />} />
             <Route path="/send-mass" element={<SendMass />} />
             <Route path="/mass-send" element={<SendMass />} />
             <Route path="/contacts" element={<Contacts />} />
@@ -60,15 +55,12 @@ function App() {
           </>
         ) : (
           <>
-            {console.log('🔐 Renderizando tela de login')}
             <Route path="/login" element={<Login />} />
-            <Route path="/cadastro" element={<SignUp />} />
-            <Route path="/recuperar-senha" element={<ForgotPassword />} />
             <Route path="/cadastro" element={<SignUp />} />
             <Route path="/recuperar-senha" element={<ForgotPassword />} />
             <Route path="/status" element={<StatusPage />} />
             <Route path="/health" element={<HealthCheck />} />
-            <Route path="/whatsapp" element={<WhatsAppPage />} />
+            <Route path="/whatsapp" element={<WhatsApp />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </>
         )}
