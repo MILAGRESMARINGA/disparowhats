@@ -55,11 +55,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!supabase) {
         throw new Error('Sistema de autenticação não configurado');
       }
-      
+
+      // Check if it's a master credential login
+      const { data: isMaster, error: masterError } = await supabase.rpc(
+        'validate_master_credentials',
+        { p_username: email, p_password: password }
+      );
+
+      if (!masterError && isMaster) {
+        // Master login successful - create a special session
+        setUser({
+          id: 'master-admin',
+          email: email,
+          name: 'Administrador Master'
+        });
+        return;
+      }
+
+      // Regular user login
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      setUser({ 
-        id: data.user?.id || '', 
+      setUser({
+        id: data.user?.id || '',
         email: data.user?.email || '',
         name: data.user?.user_metadata?.name || data.user?.email?.split('@')[0]
       });
